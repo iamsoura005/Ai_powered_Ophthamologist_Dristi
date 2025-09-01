@@ -9,18 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: process.env.NODE_ENV === 'production' 
-          ? '/api/:path*' 
-          : 'http://localhost:5000/:path*'
-      },
-    ]
-  },
   trailingSlash: true,
-  output: 'standalone'
+  output: 'export'
 }
 
 export default nextConfig
