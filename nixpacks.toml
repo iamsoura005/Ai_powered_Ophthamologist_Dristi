@@ -1,19 +1,20 @@
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
+PIP_BREAK_SYSTEM_PACKAGES = "1"
 
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
-nixLibs = ["zlib", "openssl"]
+nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
+nixLibs = ["zlib", "openssl", "libffi", "glib"]
 
 [phases.install]
 cmds = [
-    "python -m venv /opt/venv",
-    "/opt/venv/bin/pip install --upgrade pip",
-    "/opt/venv/bin/pip install -r requirements.txt"
+    "cd backend",
+    "pip install --upgrade pip",
+    "pip install --no-cache-dir -r requirements.txt"
 ]
 
 [phases.build]
 cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "/opt/venv/bin/python backend/app.py"
+cmd = "cd backend && python app.py"

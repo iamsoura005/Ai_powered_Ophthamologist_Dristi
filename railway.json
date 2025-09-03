@@ -1,11 +1,10 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "cd backend && python -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && source venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2",
+    "startCommand": "cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2 --max-requests 1000 --max-requests-jitter 100",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
@@ -15,7 +14,9 @@
     "production": {
       "variables": {
         "FLASK_ENV": "production",
-        "PYTHONPATH": "/app/backend"
+        "PYTHONPATH": "/app/backend",
+        "PYTHONUNBUFFERED": "1",
+        "PIP_NO_CACHE_DIR": "1"
       }
     }
   }
