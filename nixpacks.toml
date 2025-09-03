@@ -3,16 +3,17 @@ NIXPACKS_PYTHON_VERSION = "3.11"
 
 [phases.setup]
 nixPkgs = ["python311", "python311Packages.pip"]
+nixLibs = ["zlib", "openssl"]
 
 [phases.install]
 cmds = [
-    "cd backend",
-    "pip install --upgrade pip",
-    "pip install -r requirements.txt"
+    "python -m venv /opt/venv",
+    "/opt/venv/bin/pip install --upgrade pip",
+    "/opt/venv/bin/pip install -r requirements.txt"
 ]
 
 [phases.build]
 cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2"
+cmd = "/opt/venv/bin/python backend/app.py"

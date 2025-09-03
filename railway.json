@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd backend && pip install -r requirements.txt"
+    "buildCommand": "cd backend && python -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
   },
   "deploy": {
-    "startCommand": "cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2",
+    "startCommand": "cd backend && source venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

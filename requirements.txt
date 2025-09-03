@@ -1,0 +1,16 @@
+flask==2.3.3
+flask-cors==4.0.0
+flask-jwt-extended==4.5.2
+flask-sqlalchemy==3.0.5
+flask-bcrypt==1.0.1
+tensorflow-cpu==2.13.0
+pillow==10.0.1
+numpy==1.24.3
+python-dotenv==1.0.0
+flask-mail==0.9.1
+openai==0.28.1
+gunicorn==21.2.0
+opencv-python-headless==4.8.1.78
+matplotlib==3.7.2
+scipy==1.11.3
+werkzeug==2.3.7
