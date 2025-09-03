@@ -10,8 +10,8 @@ nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.g
 [phases.install]
 cmds = [
     "cd backend",
-    "python3.11 -m pip install --break-system-packages --upgrade pip",
-    "python3.11 -m pip install --break-system-packages --no-cache-dir -r requirements.txt"
+    "pip install --break-system-packages --upgrade pip",
+    "pip install --break-system-packages --no-cache-dir -r requirements.txt"
 ]
 
 [phases.build]
