@@ -5,16 +5,18 @@ PIP_BREAK_SYSTEM_PACKAGES = "1"
 [phases.setup]
 nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
 nixLibs = ["zlib", "openssl", "libffi", "glib"]
+nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz"]
 
 [phases.install]
 cmds = [
     "cd backend",
-    "python -m pip install --upgrade pip",
-    "python -m pip install --no-cache-dir -r requirements.txt"
+    "python3.11 -m ensurepip --upgrade",
+    "python3.11 -m pip install --upgrade pip",
+    "python3.11 -m pip install --no-cache-dir -r requirements.txt"
 ]
 
 [phases.build]
 cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2 --max-requests 1000 --max-requests-jitter 100"
+cmd = "cd backend && python3.11 -m gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2 --max-requests 1000 --max-requests-jitter 100"
