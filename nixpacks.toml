@@ -9,12 +9,12 @@ nixLibs = ["zlib", "openssl", "libffi", "glib"]
 [phases.install]
 cmds = [
     "cd backend",
-    "pip install --upgrade pip",
-    "pip install --no-cache-dir -r requirements.txt"
+    "python -m pip install --upgrade pip",
+    "python -m pip install --no-cache-dir -r requirements.txt"
 ]
 
 [phases.build]
 cmds = ["echo 'Build complete'"]
 
 [start]
-cmd = "cd backend && python app.py"
+cmd = "cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2 --max-requests 1000 --max-requests-jitter 100"
