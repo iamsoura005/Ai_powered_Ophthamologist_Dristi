@@ -16,7 +16,7 @@ out/
 frontend/node_modules/
 node_modules/
 
-# Environment variables
+# Environment variables (exclude deployment examples)
 .env
 .env.local
 .env.development.local
@@ -85,3 +85,8 @@ dist/
 # Package lock files (keep only one)
 package-lock.json
 pnpm-lock.yaml
+
+# Deployment files are tracked
+# !Procfile
+# !railway.json
+# !nixpacks.toml
