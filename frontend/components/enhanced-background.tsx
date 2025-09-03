@@ -1,6 +1,35 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
+interface FloatingParticle {
+  id: number
+  left: number
+  top: number
+  animationDelay: number
+  animationDuration: number
+}
+
 export const EnhancedBackground = () => {
+  const [particles, setParticles] = useState<FloatingParticle[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    
+    // Generate particles only on client side
+    const generatedParticles: FloatingParticle[] = []
+    for (let i = 0; i < 20; i++) {
+      generatedParticles.push({
+        id: i,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        animationDelay: Math.random() * 3,
+        animationDuration: 2 + Math.random() * 2,
+      })
+    }
+    setParticles(generatedParticles)
+  }, [])
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Base dark background */}
@@ -30,15 +59,15 @@ export const EnhancedBackground = () => {
 
       {/* Floating particles */}
       <div className="absolute inset-0">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {mounted && particles.map((particle) => (
           <div
-            key={i}
+            key={particle.id}
             className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              animationDelay: `${particle.animationDelay}s`,
+              animationDuration: `${particle.animationDuration}s`,
             }}
           />
         ))}

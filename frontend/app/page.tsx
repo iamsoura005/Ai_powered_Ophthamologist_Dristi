@@ -5,20 +5,11 @@ import { ArrowRight, Sparkles, TestTube, Eye, Brain, Shield, Zap, CheckCircle, S
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { ClientOnlyAnimatedBackground } from "@/components/client-animated-background"
 
 export default function HomePage() {
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
 
   return (
     <div className="min-h-screen">
@@ -27,35 +18,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
         {/* Enhanced floating particles with mouse interaction */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(30)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: Math.random() * 4 + 1,
-                height: Math.random() * 4 + 1,
-                background: `linear-gradient(45deg, hsl(${200 + Math.random() * 60}, 70%, 60%), hsl(${260 + Math.random() * 60}, 70%, 60%))`,
-              }}
-              initial={{
-                x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 1200),
-                y: Math.random() * (typeof window !== "undefined" ? window.innerHeight : 800),
-              }}
-              animate={{
-                y: [null, -30, 30],
-                x: [null, -15, 15],
-                opacity: [0.2, 0.8, 0.2],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 4 + Math.random() * 3,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
+        <ClientOnlyAnimatedBackground />
 
         {/* Gradient orbs */}
         <motion.div

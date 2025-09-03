@@ -1,10 +1,37 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
+
+interface PrismParticle {
+  id: number
+  initialX: number
+  initialY: number
+  duration: number
+  delay: number
+}
 
 export function PrismBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [particles, setParticles] = useState<PrismParticle[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    
+    // Generate particles only on client side
+    const generatedParticles: PrismParticle[] = []
+    for (let i = 0; i < 20; i++) {
+      generatedParticles.push({
+        id: i,
+        initialX: typeof window !== "undefined" ? Math.random() * window.innerWidth : Math.random() * 1200,
+        initialY: typeof window !== "undefined" ? Math.random() * window.innerHeight : Math.random() * 800,
+        duration: 4 + Math.random() * 3,
+        delay: Math.random() * 2,
+      })
+    }
+    setParticles(generatedParticles)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -115,13 +142,13 @@ export function PrismBackground() {
 
       {/* Additional animated elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {mounted && particles.map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
             initial={{
-              x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 1200),
-              y: Math.random() * (typeof window !== "undefined" ? window.innerHeight : 800),
+              x: particle.initialX,
+              y: particle.initialY,
             }}
             animate={{
               y: [null, -20, 20],
@@ -129,10 +156,10 @@ export function PrismBackground() {
               opacity: [0.1, 0.5, 0.1],
             }}
             transition={{
-              duration: 4 + Math.random() * 3,
+              duration: particle.duration,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
-              delay: Math.random() * 2,
+              delay: particle.delay,
             }}
           />
         ))}

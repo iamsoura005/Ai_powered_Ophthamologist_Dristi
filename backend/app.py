@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import json
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
@@ -8,7 +9,9 @@ from flask_sqlalchemy import SQLAlchemy
 from models import db, User, TestResult, UserRole
 from auth_routes import auth_bp
 from email_service import init_mail, send_test_results_email, send_welcome_email, send_comprehensive_report
+# Temporarily disabled due to numpy/opencv compatibility issue
 # from explainable_ai import GradCAMExplainer, generate_multi_class_explanation, generate_medical_interpretation
+explainable_ai_enabled = False
 import tensorflow as tf
 from PIL import Image
 import io
@@ -18,7 +21,13 @@ from dotenv import load_dotenv
 
 # For the AI chatbot
 import re
-import openai
+
+# OpenCV for image processing
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+    print("Warning: OpenCV not available, some image processing features may be limited")
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +48,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 OPENROUTER_API_KEY = "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"
 print(f"🔑 Configuring OpenRouter API with key: {OPENROUTER_API_KEY[:20]}...")
 try:
+    import openai
     openai.api_key = OPENROUTER_API_KEY
     openai.api_base = "https://openrouter.ai/api/v1"
     print("✅ OpenRouter API configured successfully!")
@@ -56,8 +66,9 @@ allowed_origins = [
 ]
 
 # Add production domain if specified
-if os.getenv('FRONTEND_URL'):
-    allowed_origins.append(os.getenv('FRONTEND_URL'))
+frontend_url = os.getenv('FRONTEND_URL')
+if frontend_url:
+    allowed_origins.append(frontend_url)
 
 CORS(app, resources={r"/*": {"origins": allowed_origins, "supports_credentials": True}})
 jwt = JWTManager(app)
@@ -94,7 +105,14 @@ color_patterns = ishihara_info['color_deficiency_patterns']
 
 # Load the TensorFlow/Keras model
 try:
-    model = tf.keras.models.load_model(model_path)
+    # Try to load model with different approaches
+    try:
+        model = tf.keras.models.load_model(model_path)
+    except AttributeError:
+        # Fallback if tf.keras not available
+        import keras
+        model = keras.models.load_model(model_path)
+    
     print("✅ Eye disease model loaded successfully!")
     print(f"Model input shape: {model.input_shape}")
     print(f"Model output shape: {model.output_shape}")
@@ -151,8 +169,8 @@ def health_check():
             'model_loaded': model_loaded,
             'mode': 'production' if model_loaded else 'demo',
             'model_info': {
-                'input_shape': model.input_shape if model_loaded else None,
-                'output_shape': model.output_shape if model_loaded else None
+                'input_shape': model.input_shape if model_loaded and model else None,
+                'output_shape': model.output_shape if model_loaded and model else None
             }
         },
         'color_vision': {
@@ -163,6 +181,28 @@ def health_check():
             'color_patterns': list(color_patterns.keys())
         }
     })
+
+def calculate_edge_density(image):
+    """Calculate edge density in an image using Sobel operators"""
+    try:
+        if cv2 is not None:
+            # Use OpenCV if available - using proper constant values
+            sobelx = cv2.Sobel(image, -1, 1, 0, ksize=3)
+            sobely = cv2.Sobel(image, -1, 0, 1, ksize=3)
+            edges = np.sqrt(sobelx**2 + sobely**2)
+        else:
+            # Fallback to numpy-based edge detection
+            grad_x = np.gradient(image, axis=1)
+            grad_y = np.gradient(image, axis=0)
+            edges = np.sqrt(grad_x**2 + grad_y**2)
+        
+        # Normalize and calculate density
+        edge_pixels = np.sum(edges > np.mean(edges))
+        total_pixels = edges.size
+        return edge_pixels / total_pixels
+    except Exception:
+        # Fallback calculation
+        return 0.1
 
 def validate_fundus_image(img):
     """
@@ -249,15 +289,6 @@ def validate_fundus_image(img):
         'confidence': calculate_fundus_confidence(img_array),
         'detected_type': 'fundus_image'
     }
-
-def calculate_edge_density(gray_img):
-    """
-    Calculate edge density to detect non-medical images
-    """
-    # Simple edge detection using gradient
-    dy, dx = np.gradient(gray_img)
-    edge_magnitude = np.sqrt(dx**2 + dy**2)
-    return np.mean(edge_magnitude > 30) / 255.0
 
 def calculate_fundus_confidence(img_array):
     """
@@ -368,46 +399,12 @@ def predict():
                 
                 print(f"✅ Real prediction: {predicted_class} (confidence: {confidence:.4f})")
                 
-                # Generate explainable AI heatmaps
-                print("🔍 Generating explainable AI visualizations...")
-                explainable_data = None
-                try:
-                    # Generate multi-class explanations for better understanding
-                    multi_explanation = generate_multi_class_explanation(
-                        model, img_array, class_names, top_k=min(3, len(class_names))
-                    )
-                    
-                    if multi_explanation['success']:
-                        # Get the main explanation for the predicted class
-                        main_explanation = multi_explanation['multi_class_explanations'].get(
-                            predicted_class, {}
-                        )
-                        
-                        if main_explanation and main_explanation['explanation']['success']:
-                            # Generate medical interpretation
-                            attention_stats = main_explanation['explanation']['attention_stats']
-                            medical_interpretation = generate_medical_interpretation(
-                                attention_stats, predicted_class, confidence
-                            )
-                            
-                            explainable_data = {
-                                'main_explanation': main_explanation['explanation'],
-                                'multi_class_explanations': multi_explanation['multi_class_explanations'],
-                                'medical_interpretation': medical_interpretation,
-                                'explanation_available': True
-                            }
-                            print("✅ Explainable AI heatmaps generated successfully")
-                        else:
-                            print("⚠️ Could not generate explanation for predicted class")
-                    else:
-                        print(f"⚠️ Multi-class explanation failed: {multi_explanation.get('error', 'Unknown error')}")
-                        
-                except Exception as e:
-                    print(f"⚠️ Error generating explainable AI: {str(e)}")
-                    explainable_data = {
-                        'explanation_available': False,
-                        'error': str(e)
-                    }
+                # Generate explainable AI heatmaps (temporarily disabled)
+                print("🔍 Explainable AI temporarily disabled due to dependency issues...")
+                explainable_data = {
+                    'explanation_available': False,
+                    'reason': 'Temporarily disabled due to dependency compatibility'
+                }
                 
                 # Check if confidence is suspiciously low for medical diagnosis
                 if confidence < 0.4:
@@ -582,6 +579,7 @@ def ishihara_color_test():
         results = analyze_color_vision(user_answers)
         
         # Save result for authenticated user
+        email_sent = False
         if current_user_id:
             try:
                 user = User.query.get(current_user_id)
@@ -599,7 +597,6 @@ def ishihara_color_test():
                 print(f"✅ Ishihara test result saved for user {current_user_id}")
                 
                 # Send email notification if user has email
-                email_sent = False
                 if user and user.email:
                     email_sent = send_test_results_email(
                         mail, 
@@ -911,7 +908,7 @@ Guidelines:
             print(f"📝 Generating response for query: {query}")
             print(f"📄 System prompt length: {len(system_prompt)} characters")
             
-            # Use the older OpenAI client format for compatibility with openai==1.3.0
+            # Use the older OpenAI client format for compatibility with openai==0.28.1
             import openai
             openai.api_key = OPENROUTER_API_KEY
             openai.api_base = "https://openrouter.ai/api/v1"
@@ -927,7 +924,13 @@ Guidelines:
                 top_p=0.95
             )
             
-            response_text = response.choices[0].message.content
+            response_text = None
+            if hasattr(response, 'choices') and response.choices:
+                response_text = response.choices[0].message.content
+            elif isinstance(response, dict) and 'choices' in response:
+                response_text = response['choices'][0]['message']['content']
+            else:
+                raise ValueError("Unexpected response format from OpenAI API")
             
             print(f"✅ DeepSeek response generated successfully")
             print(f"📤 Response length: {len(response_text)} characters")

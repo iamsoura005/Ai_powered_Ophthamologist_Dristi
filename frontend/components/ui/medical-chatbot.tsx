@@ -88,7 +88,7 @@ export function MedicalChatbot({ className = "" }: MedicalChatbotProps) {
     setIsTyping(true)
     
     try {
-      // Call the backend API with Gemini integration
+      // Call the backend API with improved error handling
       const response = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: {
@@ -100,19 +100,19 @@ export function MedicalChatbot({ className = "" }: MedicalChatbotProps) {
         }),
       })
       
-      // For now, if the endpoint doesn't exist, fall back to local pattern matching
-      if (!response.ok) {
-        console.warn("API call failed, falling back to local response generation")
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Add a small random delay for natural feeling (100-300ms)
+        await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200))
+        
+        setIsTyping(false)
+        return data.response || "I received your question but couldn't generate a proper response. Please try rephrasing your question."
+      } else {
+        console.warn("API call failed with status:", response.status)
+        setIsTyping(false)
         return await fallbackResponseGeneration(query)
       }
-      
-      const data = await response.json()
-      
-      // Add a small random delay for natural feeling (100-300ms)
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200))
-      
-      setIsTyping(false)
-      return data.response
     } catch (error) {
       console.error("Error with AI service:", error)
       // Fallback to pattern matching if API call fails
@@ -233,13 +233,13 @@ export function MedicalChatbot({ className = "" }: MedicalChatbotProps) {
       // Get AI response
       const responseText = await generateResponse(inputValue)
       
-      // Add AI message
+      // Add AI message with better model detection
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: responseText,
         role: "assistant",
         timestamp: new Date(),
-        model: responseText.includes("DeepSeek") ? "deepseek" : "ai"
+        model: responseText.includes("DeepSeek") || responseText.includes("deepseek") ? "deepseek" : "fallback"
       }
       
       setMessages(prev => [...prev, assistantMessage])
