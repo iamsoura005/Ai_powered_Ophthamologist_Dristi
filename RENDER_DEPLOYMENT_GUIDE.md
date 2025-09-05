@@ -10,7 +10,7 @@ The issue was that some dependency or cached build was trying to install `tensor
 
 ### 🔧 Changes Made
 
-1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow==2.13.0` and compatible Flask extensions
+1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow==2.10.0` and compatible Flask extensions
 2. **Enhanced TensorFlow Configuration** - Added CPU-only enforcement in the backend code
 3. **Created Render-Specific Configuration** - Added `render.yaml` with proper build commands
 4. **Added Deployment Scripts** - Created scripts to ensure clean TensorFlow installation
