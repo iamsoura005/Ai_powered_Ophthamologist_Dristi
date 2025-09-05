@@ -3,7 +3,7 @@ flask-cors==4.0.0
 flask-jwt-extended==4.5.2
 flask-sqlalchemy==3.0.5
 flask-bcrypt==1.0.1
-tensorflow-cpu==2.12.0  # CPU-only version for cloud deployment
+tensorflow-cpu==2.20.0  # CPU-only version for cloud deployment
 pillow==10.4.0
 numpy==1.26.4
 python-dotenv==1.0.0

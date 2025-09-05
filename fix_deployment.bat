@@ -22,7 +22,7 @@ REM Commit changes
 echo 💾 Committing changes...
 git commit -m "Fix TensorFlow compatibility issues
 
-- Update tensorflow-cpu from 2.13.0 to 2.12.0 for Render compatibility
+- Update tensorflow-cpu from 2.13.0 to 2.20.0 for Render compatibility
 - Update numpy, pillow, scipy to compatible versions
 - Add Render-specific requirements file with tested versions
 - Update Vercel runtime to Python 3.11
