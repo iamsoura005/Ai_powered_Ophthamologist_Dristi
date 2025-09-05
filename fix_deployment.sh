@@ -23,7 +23,7 @@ git add .
 echo "💾 Committing changes..."
 git commit -m "Fix TensorFlow compatibility issues
 
-- Ensure tensorflow-cpu is set to 2.13.0 for Render compatibility
+- Update tensorflow-cpu from 2.13.0 to 2.20.0 for Render compatibility
 - Update numpy, pillow, scipy to compatible versions
 - Add Render-specific requirements file with tested versions
 - Update Vercel runtime to Python 3.11
@@ -39,7 +39,7 @@ git push origin main
 echo "✅ Successfully updated GitHub with TensorFlow compatibility fixes!"
 echo ""
 echo "🎯 Key changes made:"
-echo "   - TensorFlow-CPU: 2.13.0 → 2.13.0"
+echo "   - TensorFlow-CPU: 2.13.0 → 2.20.0"
 echo "   - NumPy: 1.24.3 → 1.26.4"
 echo "   - Pillow: 10.0.1 → 10.4.0"
 echo "   - SciPy: 1.11.3 → 1.13.1"
