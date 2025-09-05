@@ -27,21 +27,21 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Us",
-    details: "support@retinalai.com",
+    details: "dristiai@gmail.com",
     description: "Get in touch with our support team",
     gradient: "from-blue-500 to-cyan-500",
   },
   {
     icon: Phone,
     title: "Call Us",
-    details: "+1 (555) 123-4567",
-    description: "Speak with our specialists",
+    details: "+91 7811035677",
+    description: "Speak with our Developer",
     gradient: "from-purple-500 to-pink-500",
   },
   {
     icon: MapPin,
     title: "Visit Us",
-    details: "123 Medical AI Drive, San Francisco, CA 94105",
+    details: "Github",
     description: "Our headquarters location",
     gradient: "from-green-500 to-emerald-500",
   },
@@ -129,7 +129,7 @@ export default function ContactPage() {
 
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Ready to transform your retinal healthcare practice? Get in touch with our team of experts and discover
-              how RetinalAI can revolutionize your diagnostic capabilities.
+              how DristiAI can revolutionize your diagnostic capabilities.
             </p>
           </motion.div>
         </div>

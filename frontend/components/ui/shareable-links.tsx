@@ -57,6 +57,7 @@ export function ShareableLinks({
       
       const linkId = Math.random().toString(36).substring(2, 15)
       const baseUrl = window.location.origin
+      // Ensure the URL format matches the Next.js dynamic route structure
       const shareableUrl = `${baseUrl}/shared-result/${linkId}?access=${accessLevel}&expires=${Date.now() + (expiryDays * 24 * 60 * 60 * 1000)}`
       
       setShareUrl(shareableUrl)

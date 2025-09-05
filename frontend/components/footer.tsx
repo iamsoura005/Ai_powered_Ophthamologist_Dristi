@@ -83,15 +83,15 @@ export function Footer() {
               >
                 <div className="flex items-center space-x-3 text-gray-400">
                   <Mail className="w-4 h-4" />
-                  <span className="text-sm">support@retinalai.com</span>
+                  <span className="text-sm">sourasantadutta@gmail.com</span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-400">
                   <Phone className="w-4 h-4" />
-                  <span className="text-sm">+1 (555) 123-4567</span>
+                  <span className="text-sm">+91 7811035677</span>
                 </div>
                 <div className="flex items-center space-x-3 text-gray-400">
                   <MapPin className="w-4 h-4" />
-                  <span className="text-sm">San Francisco, CA</span>
+                  <span className="text-sm">Kolkata,West Bengal,India</span>
                 </div>
               </motion.div>
             </div>

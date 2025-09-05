@@ -289,7 +289,7 @@ def validate_fundus_image(img):
     
     # Additional check: look for very high contrast or artificial patterns
     edge_density = calculate_edge_density(gray_img)
-    if edge_density > 0.7:  # Further increased threshold to be much more lenient with detailed images
+    if edge_density > 0.5:  # Increased threshold to allow more detailed images
         return {
             'is_valid': False,
             'error': 'Image contains too much detail/noise for fundus analysis',
@@ -878,6 +878,9 @@ def send_all_reports():
         print(f"❌ Error sending comprehensive report: {str(e)}")
         return jsonify({'error': f'Failed to send comprehensive report: {str(e)}'}), 500
 
+# Alternative API key for fallback
+ALTERNATIVE_API_KEY = "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"
+
 @app.route('/chat', methods=['POST'])
 def chat():
     """AI-powered chat endpoint for medical questions using DeepSeek via OpenRouter"""
@@ -922,12 +925,14 @@ Guidelines:
             print(f"📝 Generating response for query: {query}")
             print(f"📄 System prompt length: {len(system_prompt)} characters")
             
-            # Use the older OpenAI client format for compatibility with openai==0.28.1
+            # Use the current OpenAI client format for compatibility with openai>=1.0.0
             import openai
-            openai.api_key = OPENROUTER_API_KEY
-            openai.api_base = "https://openrouter.ai/api/v1"
+            client = openai.OpenAI(
+                api_key=OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api/v1"
+            )
             
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="deepseek/deepseek-chat",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -938,13 +943,9 @@ Guidelines:
                 top_p=0.95
             )
             
-            response_text = None
-            if hasattr(response, 'choices') and response.choices:
-                response_text = response.choices[0].message.content
-            elif isinstance(response, dict) and 'choices' in response:
-                response_text = response['choices'][0]['message']['content']
-            else:
-                raise ValueError("Unexpected response format from OpenAI API")
+            response_text = response.choices[0].message.content
+            if not response_text:
+                raise ValueError("Empty response from OpenAI API")
             
             print(f"✅ DeepSeek response generated successfully")
             print(f"📤 Response length: {len(response_text)} characters")
@@ -972,9 +973,46 @@ Guidelines:
             elif "model" in str(e).lower():
                 print("❌ Model configuration issue detected")
             
-            # Fall back to the local response system if DeepSeek fails
-            print("🔄 Falling back to local response system")
-            return fallback_chat_response(query)
+            # Try with alternative API key
+            try:
+                print("🔄 Trying with alternative API key...")
+                client = openai.OpenAI(
+                    api_key=ALTERNATIVE_API_KEY,
+                    base_url="https://openrouter.ai/api/v1"
+                )
+                
+                response = client.chat.completions.create(
+                    model="deepseek/deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": query}
+                    ],
+                    max_tokens=2048,
+                    temperature=0.4,
+                    top_p=0.95
+                )
+                
+                response_text = response.choices[0].message.content
+                if not response_text:
+                    raise ValueError("Empty response from alternative API")
+                
+                print(f"✅ Alternative API response generated successfully")
+                print(f"📤 Response length: {len(response_text)} characters")
+                print(f"📤 Response preview: {response_text[:100]}...")
+                
+                # If successful with alternative API, return the response
+                return jsonify({
+                    'response': response_text,
+                    'query': query,
+                    'status': 'success',
+                    'model': 'deepseek-chat (alternative)'
+                })
+                
+            except Exception as alt_e:
+                print(f"❌ Error with alternative API: {str(alt_e)}")
+                # Fall back to the local response system if both APIs fail
+                print("🔄 Falling back to local response system")
+                return fallback_chat_response(query)
         
     except Exception as e:
         print(f"❌ Error in chat processing: {str(e)}")

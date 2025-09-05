@@ -77,6 +77,8 @@ class AuthService {
 
   // Token validation
   isTokenValid(token: string): boolean {
+    if (!token) return false
+    
     try {
       const decoded: JWTPayload = jwtDecode(token)
       const now = Date.now() / 1000
@@ -87,8 +89,12 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const token = this.getToken()
-    return token !== null && this.isTokenValid(token)
+    try {
+      const token = this.getToken()
+      return token !== null && this.isTokenValid(token)
+    } catch {
+      return false
+    }
   }
 
   // API calls
@@ -143,28 +149,39 @@ class AuthService {
   async getCurrentUser(): Promise<User> {
     const token = this.getToken()
     if (!token) {
+      this.logout()
       throw new Error('No authentication token')
     }
-
-    const response = await fetch('http://localhost:5000/auth/me', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        this.logout()
-      }
-      const error = await response.json()
-      throw new Error(error.error || 'Failed to get user info')
+    
+    if (!this.isTokenValid(token)) {
+      this.logout()
+      throw new Error('Invalid token')
     }
 
-    const data = await response.json()
-    this.setUser(data.user)
-    return data.user
+    try {
+      const response = await fetch('http://localhost:5000/auth/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.logout()
+        }
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to get user info')
+      }
+
+      const data = await response.json()
+      this.setUser(data.user)
+      return data.user
+    } catch (error) {
+      this.logout()
+      throw error
+    }
   }
 
   async refreshToken(): Promise<string> {

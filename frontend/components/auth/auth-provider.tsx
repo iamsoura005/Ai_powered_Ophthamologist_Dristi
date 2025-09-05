@@ -37,13 +37,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // First check if we have a token and if it's valid
         if (authService.isAuthenticated()) {
-          const currentUser = await authService.getCurrentUser()
-          setUser(currentUser)
+          try {
+            const currentUser = await authService.getCurrentUser()
+            setUser(currentUser)
+          } catch (error) {
+            console.error('Failed to get current user:', error)
+            // Clear invalid auth state
+            await authService.logout()
+            setUser(null)
+          }
         }
       } catch (error) {
         console.error('Failed to initialize auth:', error)
-        authService.logout()
+        // Ensure we clean up any invalid state
+        await authService.logout()
+        setUser(null)
       } finally {
         setLoading(false)
       }

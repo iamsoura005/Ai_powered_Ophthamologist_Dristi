@@ -17,56 +17,305 @@ interface IshiharaPlateProps {
   size: number
 }
 
+// Generate a random color from a palette based on type
+function getRandomColor(type: string): string {
+  const colorPalettes = {
+    red_dots: ['#FF5252', '#FF1744', '#D50000', '#FF8A80', '#FF5252'],
+    green_dots: ['#69F0AE', '#00E676', '#00C853', '#B9F6CA', '#69F0AE'],
+    orange_dots: ['#FFAB40', '#FF9100', '#FF6D00', '#FFD180', '#FFAB40'],
+    mixed_brown_tan: ['#A1887F', '#8D6E63', '#795548', '#6D4C41', '#5D4037'],
+    orange_brown: ['#FFAB91', '#FF8A65', '#FF7043', '#FF5722', '#F4511E'],
+    purple_violet: ['#B39DDB', '#9575CD', '#7E57C2', '#673AB7', '#5E35B1'],
+    light_green: ['#AED581', '#9CCC65', '#8BC34A', '#7CB342', '#689F38'],
+    yellow_orange: ['#FFD54F', '#FFCA28', '#FFC107', '#FFB300', '#FFA000'],
+    blue_purple: ['#90CAF9', '#64B5F6', '#42A5F5', '#2196F3', '#1E88E5'],
+    pink_rose: ['#F48FB1', '#F06292', '#EC407A', '#E91E63', '#D81B60'],
+    gray_silver: ['#E0E0E0', '#BDBDBD', '#9E9E9E', '#757575', '#616161']
+  };
+  
+  // Default to a mixed palette if type not found
+  const palette = colorPalettes[type as keyof typeof colorPalettes] || 
+                 [...colorPalettes.mixed_brown_tan, ...colorPalettes.green_dots];
+  
+  return palette[Math.floor(Math.random() * palette.length)];
+}
+
 function IshiharaPlate({ plateId, correctAnswer, size }: IshiharaPlateProps) {
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const [imageError, setImageError] = useState(false)
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [isRendered, setIsRendered] = useState(false);
+  
+  // Get plate data from the plateId
+  useEffect(() => {
+    const renderPlate = () => {
+      if (!svgRef.current) return;
+      
+      // Clear previous content
+      while (svgRef.current.firstChild) {
+        svgRef.current.removeChild(svgRef.current.firstChild);
+      }
+      
+      // Determine background and number colors based on plate number
+      let bgColorType = 'mixed_brown_tan';
+      let numberColorType = 'green_dots';
+      
+      // Vary colors based on plate ID to make them look different
+      switch (plateId % 5) {
+        case 0: 
+          bgColorType = 'orange_brown'; 
+          numberColorType = 'green_dots'; 
+          break;
+        case 1: 
+          bgColorType = 'purple_violet'; 
+          numberColorType = 'red_dots'; 
+          break;
+        case 2: 
+          bgColorType = 'light_green'; 
+          numberColorType = 'red_dots'; 
+          break;
+        case 3: 
+          bgColorType = 'blue_purple'; 
+          numberColorType = 'orange_dots'; 
+          break;
+        case 4: 
+          bgColorType = 'gray_silver'; 
+          numberColorType = 'red_dots'; 
+          break;
+      }
+      
+      // Create background dots
+      const totalDots = 1000;
+      const radius = (size - 8) / 2;
+      const center = radius;
+      
+      // Create dots in a circular pattern
+      for (let i = 0; i < totalDots; i++) {
+        // Random angle and distance from center (with higher density toward edges)
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = Math.pow(Math.random(), 0.5) * radius; // Square root for more uniform distribution
+        
+        // Convert to cartesian coordinates
+        const x = center + distance * Math.cos(angle);
+        const y = center + distance * Math.sin(angle);
+        
+        // Create circle element
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x.toString());
+        circle.setAttribute('cy', y.toString());
+        circle.setAttribute('r', (2 + Math.random() * 3).toString()); // Random size between 2-5px
+        circle.setAttribute('fill', getRandomColor(bgColorType));
+        
+        svgRef.current.appendChild(circle);
+      }
+      
+      // Draw the number
+      const numberStr = correctAnswer.toString();
+      const fontSize = radius * 0.8;
+      const numberWidth = fontSize * 0.6 * numberStr.length;
+      const startX = center - numberWidth / 2;
+      const startY = center + fontSize / 3;
+      
+      // Create a path for each digit
+      for (let i = 0; i < numberStr.length; i++) {
+        const digit = numberStr[i];
+        const digitX = startX + i * fontSize * 0.6;
+        
+        // Create dots along the digit path
+        const digitDots = 200; // Number of dots per digit
+        
+        // Simple path definitions for digits 0-9
+        let pathPoints: [number, number][] = [];
+        
+        switch (digit) {
+          case '0':
+          case 'O':
+            // Circle
+            for (let j = 0; j < digitDots; j++) {
+              const a = j / digitDots * 2 * Math.PI;
+              pathPoints.push([digitX + Math.cos(a) * fontSize * 0.3, startY + Math.sin(a) * fontSize * 0.4]);
+            }
+            break;
+          case '1':
+            // Vertical line
+            for (let j = 0; j < digitDots; j++) {
+              pathPoints.push([digitX, startY - fontSize * 0.5 + j / digitDots * fontSize]);
+            }
+            break;
+          case '2':
+            // Create a '2' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.3) {
+                // Top curve
+                const a = (1 - t / 0.3) * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY - fontSize * 0.4 + Math.sin(a) * fontSize * 0.25]);
+              } else if (t < 0.6) {
+                // Diagonal line
+                const nt = (t - 0.3) / 0.3;
+                pathPoints.push([digitX + fontSize * 0.25 - nt * fontSize * 0.5, startY - fontSize * 0.15 + nt * fontSize * 0.5]);
+              } else {
+                // Bottom line
+                const nt = (t - 0.6) / 0.4;
+                pathPoints.push([digitX - fontSize * 0.25 + nt * fontSize * 0.5, startY + fontSize * 0.35]);
+              }
+            }
+            break;
+          case '3':
+            // Create a '3' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.5) {
+                // Top curve
+                const a = (1 - t / 0.5) * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY - fontSize * 0.25 + Math.sin(a) * fontSize * 0.25]);
+              } else {
+                // Bottom curve
+                const a = (1 - (t - 0.5) / 0.5) * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY + fontSize * 0.25 + Math.sin(a) * fontSize * 0.25]);
+              }
+            }
+            break;
+          case '4':
+            // Create a '4' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.33) {
+                // Vertical line
+                pathPoints.push([digitX + fontSize * 0.25, startY - fontSize * 0.5 + t / 0.33 * fontSize]);
+              } else if (t < 0.66) {
+                // Horizontal line
+                const nt = (t - 0.33) / 0.33;
+                pathPoints.push([digitX + fontSize * 0.25 - nt * fontSize * 0.5, startY]);
+              } else {
+                // Middle vertical line
+                const nt = (t - 0.66) / 0.34;
+                pathPoints.push([digitX, startY - fontSize * 0.25 + nt * fontSize * 0.5]);
+              }
+            }
+            break;
+          case '5':
+            // Create a '5' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.25) {
+                // Top horizontal
+                pathPoints.push([digitX + fontSize * 0.25 - t / 0.25 * fontSize * 0.5, startY - fontSize * 0.4]);
+              } else if (t < 0.5) {
+                // Vertical down
+                const nt = (t - 0.25) / 0.25;
+                pathPoints.push([digitX - fontSize * 0.25, startY - fontSize * 0.4 + nt * fontSize * 0.4]);
+              } else {
+                // Bottom curve
+                const a = (1 - (t - 0.5) / 0.5) * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY + fontSize * 0.2 + Math.sin(a) * fontSize * 0.2]);
+              }
+            }
+            break;
+          case '6':
+            // Create a '6' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.4) {
+                // Left curve
+                const a = t / 0.4 * Math.PI + Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY - fontSize * 0.2 + Math.sin(a) * fontSize * 0.4]);
+              } else {
+                // Bottom circle
+                const a = (t - 0.4) / 0.6 * 2 * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY + fontSize * 0.2 + Math.sin(a) * fontSize * 0.2]);
+              }
+            }
+            break;
+          case '7':
+            // Create a '7' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.3) {
+                // Top horizontal
+                pathPoints.push([digitX - fontSize * 0.25 + t / 0.3 * fontSize * 0.5, startY - fontSize * 0.4]);
+              } else {
+                // Diagonal
+                const nt = (t - 0.3) / 0.7;
+                pathPoints.push([digitX + fontSize * 0.25 - nt * fontSize * 0.5, startY - fontSize * 0.4 + nt * fontSize * 0.8]);
+              }
+            }
+            break;
+          case '8':
+            // Create an '8' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.5) {
+                // Top circle
+                const a = t / 0.5 * 2 * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY - fontSize * 0.2 + Math.sin(a) * fontSize * 0.2]);
+              } else {
+                // Bottom circle
+                const a = (t - 0.5) / 0.5 * 2 * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY + fontSize * 0.2 + Math.sin(a) * fontSize * 0.2]);
+              }
+            }
+            break;
+          case '9':
+            // Create a '9' shape
+            for (let j = 0; j < digitDots; j++) {
+              const t = j / digitDots;
+              if (t < 0.6) {
+                // Top circle
+                const a = t / 0.6 * 2 * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY - fontSize * 0.2 + Math.sin(a) * fontSize * 0.2]);
+              } else {
+                // Right curve
+                const a = (t - 0.6) / 0.4 * Math.PI;
+                pathPoints.push([digitX + Math.cos(a) * fontSize * 0.25, startY + fontSize * 0.2 + Math.sin(a) * fontSize * 0.4]);
+              }
+            }
+            break;
+          default:
+            // For any other character, just make a dot
+            for (let j = 0; j < digitDots; j++) {
+              const a = j / digitDots * 2 * Math.PI;
+              pathPoints.push([digitX + Math.cos(a) * fontSize * 0.3, startY + Math.sin(a) * fontSize * 0.3]);
+            }
+        }
+        
+        // Draw dots along the path
+        for (const [x, y] of pathPoints) {
+          // Skip some dots randomly for a more natural look
+          if (Math.random() < 0.7) {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', x.toString());
+            circle.setAttribute('cy', y.toString());
+            circle.setAttribute('r', (1.5 + Math.random() * 2).toString()); // Random size
+            circle.setAttribute('fill', getRandomColor(numberColorType));
+            
+            svgRef.current.appendChild(circle);
+          }
+        }
+      }
+      
+      setIsRendered(true);
+    };
+    
+    renderPlate();
+  }, [plateId, correctAnswer, size]);
   
   return (
     <div 
       className="w-full h-full rounded-full relative overflow-hidden border-4 border-gray-600 bg-gray-100"
       style={{ width: size, height: size }}
     >
-      {/* Use actual Ishihara plate images */}
       <div className="w-full h-full flex items-center justify-center">
-        {!imageLoaded && !imageError && (
+        {!isRendered && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
           </div>
         )}
         
-        {imageError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-            <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
-            <div className="text-xs text-gray-600">
-              Image failed to load
-              <br />
-              Plate {plateId}
-            </div>
-          </div>
-        )}
-        
-        <img
-          src={`/plates/plate${plateId}.svg?t=${Date.now()}`}
-          alt={`Ishihara color blindness test plate ${plateId}`}
-          className={`w-full h-full object-cover rounded-full transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{ 
-            width: size - 8, 
-            height: size - 8,
-            objectFit: 'cover'
-          }}
-          onLoad={() => {
-            console.log(`Plate ${plateId} loaded successfully`);
-            setImageLoaded(true);
-            setImageError(false);
-          }}
-          onError={(e) => {
-            console.error(`Failed to load plate image: /plates/plate${plateId}.svg`);
-            console.error('Error details:', e);
-            setImageError(true);
-            setImageLoaded(false);
-          }}
+        <svg 
+          ref={svgRef}
+          width={size - 8} 
+          height={size - 8}
+          viewBox={`0 0 ${size - 8} ${size - 8}`}
+          className="rounded-full"
         />
       </div>
       

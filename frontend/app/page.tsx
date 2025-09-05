@@ -66,7 +66,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                {"Drisit AI- The Ultimate\nOphthamologist"}
+                {"Dristi AI- The Ultimate\nOphthamologist"}
               </motion.span>
               <motion.span
                 className="block text-white mt-2"
