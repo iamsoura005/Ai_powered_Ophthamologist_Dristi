@@ -33,23 +33,8 @@ An advanced web application for detecting eye diseases from fundus images using 
 
 For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 
-## 🛠️ Environment Variables
 
-Configure these environment variables in Vercel:
 
-```bash
-SECRET_KEY=your-secret-key-here
-JWT_SECRET_KEY=your-jwt-secret-here
-DATABASE_URL=sqlite:///hackloop.db
-OPENROUTER_API_KEY=your-openrouter-api-key
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-FRONTEND_URL=https://your-app.vercel.app
-```
-
-## 💻 Local Development
 
 ### Prerequisites
 
