@@ -1,6 +1,9 @@
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
 PIP_BREAK_SYSTEM_PACKAGES = "1"
+TF_CPP_MIN_LOG_LEVEL = "2"
+DISABLE_TENSORFLOW_GPU = "1"
+PIP_NO_CACHE_DIR = "1"
 
 [phases.setup]
 nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
@@ -11,7 +14,8 @@ nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.g
 cmds = [
     "cd backend",
     "/root/.nix-profile/bin/pip install --break-system-packages --upgrade pip",
-    "/root/.nix-profile/bin/pip install --break-system-packages --no-cache-dir -r requirements.txt"
+    "/root/.nix-profile/bin/pip uninstall -y tensorflow tensorflow-gpu tensorflow-cpu || true",
+    "/root/.nix-profile/bin/pip install --break-system-packages --no-cache-dir --force-reinstall -r requirements.txt"
 ]
 
 [phases.build]

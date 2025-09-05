@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: dristi-ai-backend
+    env: python
+    buildCommand: |
+      cd backend &&
+      pip install --upgrade pip &&
+      pip install --no-cache-dir --force-reinstall -r requirements.txt
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT app:app --timeout 300 --workers 1 --threads 2 --max-requests 1000 --max-requests-jitter 100
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PIP_NO_CACHE_DIR
+        value: "1"
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONPATH
+        value: /opt/render/project/src/backend
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "2"
+      - key: DISABLE_TENSORFLOW_GPU
+        value: "1"

@@ -32,9 +32,23 @@ except ImportError:
 # Load environment variables
 load_dotenv()
 
-# Suppress warnings
+# Suppress warnings and ensure CPU-only TensorFlow
 warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU-only
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'false'
+
+# Import TensorFlow with CPU-only configuration
+try:
+    import tensorflow as tf
+    # Configure TensorFlow for CPU-only usage
+    tf.config.experimental.set_visible_devices([], 'GPU')
+    print(f"✅ TensorFlow {tf.__version__} loaded (CPU-only mode)")
+except ImportError as e:
+    print(f"❌ TensorFlow import error: {e}")
+    tf = None
+except Exception as e:
+    print(f"⚠️ TensorFlow configuration warning: {e}")
 
 app = Flask(__name__)
 
