@@ -1,0 +1,42 @@
+# Render deployment requirements - tested and optimized for cloud deployment
+# This file uses specific versions that are known to work on Render platform
+
+# Core Flask dependencies
+flask==3.0.3
+flask-cors==4.0.1
+flask-jwt-extended==4.6.0
+flask-sqlalchemy==3.1.1
+flask-bcrypt==1.0.1
+
+# Machine Learning - Use TensorFlow 2.15.0 for Python 3.11 compatibility
+tensorflow-cpu==2.15.0
+
+# Image processing - compatible versions
+pillow==10.4.0
+opencv-python-headless==4.10.0.84
+
+# Scientific computing - stable versions
+numpy==1.26.4
+matplotlib==3.9.2
+scipy==1.13.1
+
+# Environment and configuration
+python-dotenv==1.0.1
+
+# Email services
+flask-mail==0.10.0
+
+# AI/ML services
+openai==1.51.2
+
+# Web server - latest stable
+gunicorn==23.0.0
+
+# Security and utilities
+werkzeug==3.0.4
+requests==2.32.3
+httpx==0.27.2
+
+# Additional dependencies for stability
+setuptools==75.1.0
+wheel==0.44.0

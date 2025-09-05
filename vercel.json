@@ -30,7 +30,7 @@
     "api/index.py": {
       "maxDuration": 60,
       "memory": 3008,
-      "runtime": "python3.9"
+      "runtime": "python3.11"
     }
   },
   "regions": ["iad1"],

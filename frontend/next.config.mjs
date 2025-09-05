@@ -19,8 +19,19 @@ const nextConfig = {
       },
     ]
   },
-  trailingSlash: true,
-  output: 'standalone'
+  trailingSlash: false,
+  serverExternalPackages: ['@tensorflow/tfjs-node'],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
 }
 
 export default nextConfig

@@ -130,3 +130,72 @@ frontend/package-lock.json
 run.bat
 run.ps1
 start.cmd
+# Vercel ignore patterns
+# Don't upload these files to Vercel
+
+# Development files
+node_modules/
+.git/
+.env*
+!.env.example
+
+# Build artifacts
+frontend/.next/
+frontend/out/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation
+*.md
+!README.md
+
+# Scripts
+*.bat
+*.sh
+*.ps1
+!deploy.ps1
+
+# Large files
+*.h5
+*.model
+*.pkl
