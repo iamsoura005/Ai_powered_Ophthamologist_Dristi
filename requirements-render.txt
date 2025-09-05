@@ -5,11 +5,14 @@
 flask==3.0.3
 flask-cors==4.0.1
 flask-jwt-extended==4.6.0
-flask-sqlalchemy==3.1.1
+flask-sqlalchemy==3.0.5
 flask-bcrypt==1.0.1
+flask-wtf==1.1.1
+wtforms==3.0.1
+bcrypt==4.0.1
 
-# Machine Learning - Use TensorFlow 2.20.0 for Python 3.11 compatibility
-tensorflow-cpu==2.20.0
+# Machine Learning - Use TensorFlow 2.13.0 for compatibility
+tensorflow==2.13.0
 
 # Image processing - compatible versions
 pillow==10.4.0

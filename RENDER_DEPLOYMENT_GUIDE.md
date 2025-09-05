@@ -10,7 +10,7 @@ The issue was that some dependency or cached build was trying to install `tensor
 
 ### 🔧 Changes Made
 
-1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow-cpu==2.20.0`
+1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow==2.13.0` and compatible Flask extensions
 2. **Enhanced TensorFlow Configuration** - Added CPU-only enforcement in the backend code
 3. **Created Render-Specific Configuration** - Added `render.yaml` with proper build commands
 4. **Added Deployment Scripts** - Created scripts to ensure clean TensorFlow installation
@@ -44,7 +44,7 @@ The issue was that some dependency or cached build was trying to install `tensor
 
 3. **Set Environment Variables**
    ```
-   PYTHON_VERSION=3.11.9
+   PYTHON_VERSION=3.10.12
    PIP_NO_CACHE_DIR=1
    TF_CPP_MIN_LOG_LEVEL=2
    DISABLE_TENSORFLOW_GPU=1
@@ -63,7 +63,7 @@ The issue was that some dependency or cached build was trying to install `tensor
 Add these in your Render service environment variables:
 
 ```bash
-PYTHON_VERSION=3.11.9
+PYTHON_VERSION=3.10.12
 PIP_NO_CACHE_DIR=1
 TF_CPP_MIN_LOG_LEVEL=2
 DISABLE_TENSORFLOW_GPU=1
@@ -97,7 +97,7 @@ If you still encounter issues:
 
 After deployment, your app should log:
 ```
-✅ TensorFlow 2.20.0 loaded (CPU-only mode)
+✅ TensorFlow 2.13.0 loaded (CPU-only mode)
 ```
 ✅ Eye disease model loaded successfully!
 ✅ Backend server ready!

@@ -1,12 +1,12 @@
 [variables]
-NIXPACKS_PYTHON_VERSION = "3.11"
+NIXPACKS_PYTHON_VERSION = "3.10"
 PIP_BREAK_SYSTEM_PACKAGES = "1"
 TF_CPP_MIN_LOG_LEVEL = "2"
 DISABLE_TENSORFLOW_GPU = "1"
 PIP_NO_CACHE_DIR = "1"
 
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
+nixPkgs = ["python310", "python310Packages.pip", "python310Packages.virtualenv"]
 nixLibs = ["zlib", "openssl", "libffi", "glib"]
 nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz"]
 
