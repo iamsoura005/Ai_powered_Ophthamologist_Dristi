@@ -289,7 +289,7 @@ def validate_fundus_image(img):
     
     # Additional check: look for very high contrast or artificial patterns
     edge_density = calculate_edge_density(gray_img)
-    if edge_density > 0.3:  # Too many edges might indicate non-medical image
+    if edge_density > 0.5:  # Increased threshold to be more lenient with detailed images
         return {
             'is_valid': False,
             'error': 'Image contains too much detail/noise for fundus analysis',
