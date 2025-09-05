@@ -10,7 +10,7 @@ The issue was that some dependency or cached build was trying to install `tensor
 
 ### 🔧 Changes Made
 
-1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow-cpu==2.20.0`
+1. **Updated Requirements Files** - All requirements files now use consistent versions of `tensorflow-cpu==2.12.0`
 2. **Enhanced TensorFlow Configuration** - Added CPU-only enforcement in the backend code
 3. **Created Render-Specific Configuration** - Added `render.yaml` with proper build commands
 4. **Added Deployment Scripts** - Created scripts to ensure clean TensorFlow installation
@@ -97,7 +97,7 @@ If you still encounter issues:
 
 After deployment, your app should log:
 ```
-✅ TensorFlow 2.20.0 loaded (CPU-only mode)
+✅ TensorFlow 2.12.0 loaded (CPU-only mode)
 ✅ Eye disease model loaded successfully!
 ✅ Backend server ready!
 ```
