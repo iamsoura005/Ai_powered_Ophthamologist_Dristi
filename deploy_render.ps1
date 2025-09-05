@@ -22,7 +22,7 @@ try {
 }
 
 Write-Host "📋 Installing dependencies..." -ForegroundColor Yellow
-pip install --no-cache-dir --force-reinstall -r requirements.txt
+pip install --no-cache-dir --force-reinstall -r ../requirements-render.txt
 
 Write-Host "✅ Verifying TensorFlow CPU installation..." -ForegroundColor Green
 python -c "import tensorflow as tf; print(f'TensorFlow version: {tf.__version__}'); print(f'GPU available: {tf.config.list_physical_devices(\"GPU\")}')"

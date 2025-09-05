@@ -8,8 +8,8 @@ flask-jwt-extended==4.6.0
 flask-sqlalchemy==3.1.1
 flask-bcrypt==1.0.1
 
-# Machine Learning - Use TensorFlow 2.15.0 for Python 3.11 compatibility
-tensorflow-cpu==2.15.0
+# Machine Learning - Use TensorFlow 2.13.0 for Python 3.11 compatibility
+tensorflow-cpu==2.13.0
 
 # Image processing - compatible versions
 pillow==10.4.0

@@ -21,7 +21,7 @@ echo "🧹 Cleaning any existing TensorFlow installations..."
 pip uninstall -y tensorflow tensorflow-gpu tensorflow-cpu || true
 
 echo "📋 Installing dependencies..."
-pip install --no-cache-dir --force-reinstall -r requirements.txt
+pip install --no-cache-dir --force-reinstall -r ../requirements-render.txt
 
 echo "✅ Verifying TensorFlow CPU installation..."
 python -c "import tensorflow as tf; print(f'TensorFlow version: {tf.__version__}'); print(f'GPU available: {tf.config.list_physical_devices(\"GPU\")}')"

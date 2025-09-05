@@ -9,7 +9,7 @@ flask-sqlalchemy==3.0.5
 flask-bcrypt==1.0.1
 
 # Machine Learning - CPU ONLY
-tensorflow-cpu==2.15.0
+tensorflow-cpu==2.13.0
 # Explicitly exclude GPU versions
 # tensorflow-gpu  # NEVER include this
 # tensorflow      # This might pull GPU version
