@@ -4,6 +4,8 @@ import tempfile
 import requests
 from functools import lru_cache
 import logging
+import json
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -12,51 +14,58 @@ logger = logging.getLogger(__name__)
 # Add the backend directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
-# Model URL - You'll need to upload your model to a public URL
-# For production, use environment variables
-MODEL_URL = os.environ.get('MODEL_URL', 'https://huggingface.co/your-username/hackloop-eye-disease-model/resolve/main/eye_disease_model.h5')
+# Model URL - Use environment variable for flexibility
+MODEL_URL = os.environ.get('MODEL_URL', 'https://github.com/iamsoura005/Dristi_Ai/releases/download/v1.0.0/eye_disease_model.h5')
 
-# Cache for model to avoid reloading
+# Global model cache
 _model_cache = None
+_model_loaded = False
 
 @lru_cache(maxsize=1)
 def download_model():
     """Download and cache the ML model from external storage"""
-    global _model_cache
+    global _model_cache, _model_loaded
     
     if _model_cache is not None:
         return _model_cache
     
     try:
         logger.info(f"Downloading model from {MODEL_URL}")
-        response = requests.get(MODEL_URL, timeout=60)
+        response = requests.get(MODEL_URL, timeout=120, stream=True)
         response.raise_for_status()
         
         # Save to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.h5') as temp_file:
-            temp_file.write(response.content)
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    temp_file.write(chunk)
             temp_path = temp_file.name
         
-        # Load model using TensorFlow
+        # Load model using TensorFlow with optimizations
         import tensorflow as tf
-        model = tf.keras.models.load_model(temp_path)
+        
+        # Configure TensorFlow for serverless
+        tf.config.set_visible_devices([], 'GPU')
+        
+        model = tf.keras.models.load_model(temp_path, compile=False)
         
         # Clean up temp file
         os.unlink(temp_path)
         
         _model_cache = model
+        _model_loaded = True
         logger.info("Model loaded successfully!")
         return model
         
     except Exception as e:
         logger.error(f"Failed to download/load model: {str(e)}")
+        _model_loaded = False
         return None
 
 # Create optimized Flask app for serverless
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import warnings
-import json
 from PIL import Image
 import numpy as np
 import io
