@@ -67,6 +67,10 @@ yarn-error.log*
 # Embedded repositories
 SWE-agent/
 
+# Duplicate directories
+Dristi_Ai/
+ISHIHARA/
+
 # Test files
 test_*.py
 *_test.py

@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Eye, Clock, RotateCcw, CheckCircle, AlertTriangle, XCircle, Sparkles, Download, Loader2, Printer } from "lucide-react"
+import { Eye, Clock, RotateCcw, CheckCircle, AlertTriangle, XCircle, Sparkles, Download, Loader2, Printer, Lightbulb } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import EmailButton from "@/components/ui/email-button"
+import LanternTest from "@/components/ui/lantern-test"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -43,10 +45,35 @@ function getRandomColor(type: string): string {
 function IshiharaPlate({ plateId, correctAnswer, size }: IshiharaPlateProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isRendered, setIsRendered] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [svgContent, setSvgContent] = useState<string>("");
   
-  // Get plate data from the plateId
+  // Load SVG file based on plateId
   useEffect(() => {
-    const renderPlate = () => {
+    const loadSvgFile = async () => {
+      try {
+        setIsLoading(true);
+        // Try to load the SVG file for this plate
+        const response = await fetch(`/plates/plate${plateId}.svg`);
+        
+        if (response.ok) {
+          const svgText = await response.text();
+          setSvgContent(svgText);
+          setIsRendered(true);
+        } else {
+          console.error(`Failed to load SVG for plate ${plateId}`);
+          // Fallback to dynamic rendering if SVG file not found
+          renderFallbackPlate();
+        }
+      } catch (error) {
+        console.error(`Error loading SVG for plate ${plateId}:`, error);
+        renderFallbackPlate();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    const renderFallbackPlate = () => {
       if (!svgRef.current) return;
       
       // Clear previous content
@@ -295,7 +322,7 @@ function IshiharaPlate({ plateId, correctAnswer, size }: IshiharaPlateProps) {
       setIsRendered(true);
     };
     
-    renderPlate();
+    loadSvgFile();
   }, [plateId, correctAnswer, size]);
   
   return (
@@ -304,19 +331,27 @@ function IshiharaPlate({ plateId, correctAnswer, size }: IshiharaPlateProps) {
       style={{ width: size, height: size }}
     >
       <div className="w-full h-full flex items-center justify-center">
-        {!isRendered && (
+        {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
           </div>
         )}
         
-        <svg 
-          ref={svgRef}
-          width={size - 8} 
-          height={size - 8}
-          viewBox={`0 0 ${size - 8} ${size - 8}`}
-          className="rounded-full"
-        />
+        {!isLoading && svgContent ? (
+          <div 
+            className="rounded-full overflow-hidden"
+            style={{ width: size - 8, height: size - 8 }}
+            dangerouslySetInnerHTML={{ __html: svgContent }}
+          />
+        ) : (
+          <svg 
+            ref={svgRef}
+            width={size - 8} 
+            height={size - 8}
+            viewBox={`0 0 ${size - 8} ${size - 8}`}
+            className="rounded-full"
+          />
+        )}
       </div>
       
       {/* Instruction overlay */}
@@ -374,7 +409,10 @@ export default function ColorBlindnessTest() {
   const [downloadingPdf, setDownloadingPdf] = useState(false)
   const [backendResults, setBackendResults] = useState<TestResults | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  
+  const [activeTab, setActiveTab] = useState("ishihara")
+  const [lanternResults, setLanternResults] = useState<any>(null)
+  const [showLanternResults, setShowLanternResults] = useState(false)
+
   const resultsRef = useRef<HTMLDivElement>(null)
 
   // Load plate data from local JSON file
@@ -411,9 +449,14 @@ export default function ColorBlindnessTest() {
         const fallbackPlates = [
           { id: 1, correctAnswer: '12', difficulty: 'easy' as const },
           { id: 2, correctAnswer: '8', difficulty: 'medium' as const },
-          { id: 3, correctAnswer: '29', difficulty: 'easy' as const },
-          { id: 4, correctAnswer: '5', difficulty: 'hard' as const },
+          { id: 3, correctAnswer: '6', difficulty: 'easy' as const },
+          { id: 4, correctAnswer: '29', difficulty: 'hard' as const },
           { id: 5, correctAnswer: '74', difficulty: 'medium' as const },
+          { id: 6, correctAnswer: '3', difficulty: 'easy' as const },
+          { id: 7, correctAnswer: '15', difficulty: 'medium' as const },
+          { id: 8, correctAnswer: '97', difficulty: 'hard' as const },
+          { id: 9, correctAnswer: '45', difficulty: 'medium' as const },
+          { id: 10, correctAnswer: '16', difficulty: 'easy' as const },
         ]
         setPlates(fallbackPlates)
         console.log('Using fallback plates:', fallbackPlates.length)
@@ -601,6 +644,17 @@ export default function ColorBlindnessTest() {
     } finally {
       setIsAnalyzing(false)
     }
+  }
+
+  const handleLanternTestComplete = (results: any) => {
+    console.log('Lantern test completed:', results)
+    setLanternResults(results)
+    setShowLanternResults(true)
+  }
+
+  const resetLanternTest = () => {
+    setLanternResults(null)
+    setShowLanternResults(false)
   }
 
   // Get vision level with backend integration
@@ -857,47 +911,142 @@ export default function ColorBlindnessTest() {
                   </h1>
 
                   <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                    Take our interactive Ishihara color vision test to screen for color vision deficiencies. You'll have
-                    30 seconds per plate to identify the hidden numbers.
+                    Choose between two comprehensive color vision tests: Ishihara plates for detecting red-green color blindness,
+                    or the Lantern test for evaluating color discrimination in various lighting conditions.
                   </p>
                 </div>
 
-                <div className="glass rounded-2xl p-8 max-w-2xl mx-auto">
-                  <h2 className="text-2xl font-bold text-black mb-4">Test Instructions</h2>
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" />
-                      <span className="text-black">Look at each colored dot pattern carefully</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-400" />
-                      <span className="text-black">Identify the number you see in the pattern</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-teal-400" />
-                      <span className="text-black">Select your answer from the options provided</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="text-black">Complete all 5 plates to get your results</span>
-                    </div>
-                  </div>
-                </div>
+                <div className="glass rounded-2xl p-8 max-w-4xl mx-auto">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-8">
+                      <TabsTrigger value="ishihara" className="flex items-center space-x-2">
+                        <Eye className="w-4 h-4" />
+                        <span>Ishihara Test</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="lantern" className="flex items-center space-x-2">
+                        <Lightbulb className="w-4 h-4" />
+                        <span>Lantern Test</span>
+                      </TabsTrigger>
+                    </TabsList>
 
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log("Start button clicked");
-                      startTest();
-                    }}
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl px-12 py-8 rounded-xl shadow-2xl shadow-blue-500/25 group"
-                  >
-                    <Eye className="w-6 h-6 mr-3" />
-                    Start Color Vision Test
-                  </Button>
-                </motion.div>
+                    <TabsContent value="ishihara" className="space-y-6">
+                      <div className="text-center">
+                        <h2 className="text-2xl font-bold text-black mb-4">Ishihara Color Vision Test</h2>
+                        <p className="text-gray-700 mb-6">
+                          Identify numbers hidden in colored dot patterns. This test is designed to detect red-green color blindness.
+                        </p>
+
+                        <div className="space-y-3 text-left mb-6">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 rounded-full bg-blue-400" />
+                            <span className="text-black">Look at each colored dot pattern carefully</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 rounded-full bg-purple-400" />
+                            <span className="text-black">Identify the number you see in the pattern</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 rounded-full bg-teal-400" />
+                            <span className="text-black">You have 30 seconds per plate</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 rounded-full bg-green-400" />
+                            <span className="text-black">Complete all plates to get your results</span>
+                          </div>
+                        </div>
+
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log("Start Ishihara test clicked");
+                              startTest();
+                            }}
+                            size="lg"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl px-12 py-6 rounded-xl shadow-2xl shadow-blue-500/25"
+                          >
+                            <Eye className="w-6 h-6 mr-3" />
+                            Start Ishihara Test
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="lantern" className="space-y-6">
+                      <div className="text-center">
+                        <h2 className="text-2xl font-bold text-black mb-4">Lantern Color Vision Test</h2>
+                        <p className="text-gray-700 mb-6">
+                          Identify sequences of colored lights. This test evaluates color discrimination ability in various conditions.
+                        </p>
+
+                        {!showLanternResults ? (
+                          <div className="space-y-6">
+                            <div className="space-y-3 text-left mb-6">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 rounded-full bg-red-400" />
+                                <span className="text-black">Observe the sequence of colored lights</span>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 rounded-full bg-green-400" />
+                                <span className="text-black">Select colors in the order you see them</span>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 rounded-full bg-blue-400" />
+                                <span className="text-black">You have 15 seconds per question</span>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 rounded-full bg-yellow-400" />
+                                <span className="text-black">Complete 8 questions for full assessment</span>
+                              </div>
+                            </div>
+
+                            <LanternTest
+                              onComplete={handleLanternTestComplete}
+                              onTimeUp={() => console.log('Lantern test time up')}
+                            />
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="p-6 bg-gray-100 rounded-lg">
+                              <h3 className="text-xl font-bold text-gray-800 mb-4">Lantern Test Results</h3>
+                              <div className="grid grid-cols-2 gap-4 text-left">
+                                <div>
+                                  <span className="text-gray-600">Accuracy:</span>
+                                  <span className="font-bold text-gray-800 ml-2">{lanternResults?.accuracy.toFixed(1)}%</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Correct Answers:</span>
+                                  <span className="font-bold text-gray-800 ml-2">{lanternResults?.correctAnswers}/{lanternResults?.totalQuestions}</span>
+                                </div>
+                              </div>
+                              <div className="mt-4">
+                                <span className="text-gray-600">Diagnosis:</span>
+                                <p className="font-bold text-gray-800">{lanternResults?.diagnosis}</p>
+                              </div>
+                              <div className="mt-4">
+                                <span className="text-gray-600">Recommendations:</span>
+                                <ul className="list-disc list-inside text-gray-700 mt-2">
+                                  {lanternResults?.recommendations.map((rec: string, index: number) => (
+                                    <li key={index}>{rec}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+
+                            <Button
+                              onClick={resetLanternTest}
+                              variant="outline"
+                              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Take Test Again
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </motion.div>
             )}
 

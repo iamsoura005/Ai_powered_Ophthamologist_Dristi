@@ -29,14 +29,23 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
+    () => {
+      // Check if we're in the browser environment
+      if (typeof window !== "undefined") {
+        const savedTheme = localStorage?.getItem(storageKey) as Theme;
+        return savedTheme || defaultTheme;
+      }
+      return defaultTheme;
+    }
   )
 
   useEffect(() => {
     const root = window.document.documentElement
 
+    // First remove both theme classes
     root.classList.remove("light", "dark")
 
+    // Handle system preference
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
@@ -47,6 +56,7 @@ export function ThemeProvider({
       return
     }
 
+    // Add the selected theme class
     root.classList.add(theme)
   }, [theme])
 

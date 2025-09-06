@@ -117,11 +117,31 @@ export default function AnalyzePage() {
       setAnalysisStatus('analyzing')
       setStatusMessage('Running AI analysis...')
       
-      console.log("Sending request to backend", "http://localhost:5000/predict")
-      const response = await fetch("http://localhost:5000/predict", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+      console.log("Sending request to backend", `${apiUrl}/predict`)
+
+      // First check if backend is reachable
+      try {
+        const healthCheck = await fetch(`${apiUrl}/health`, { method: 'GET' })
+        if (!healthCheck.ok) {
+          throw new Error(`Backend server is not responding (status: ${healthCheck.status})`)
+        }
+      } catch (healthError) {
+        throw new Error('Backend server is not reachable. Please ensure the backend is running on port 5000.')
+      }
+
+      const response = await fetch(`${apiUrl}/predict`, {
         method: "POST",
         body: formData,
       })
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text()
+        console.error('Non-JSON response received:', responseText)
+        throw new Error(`Server returned non-JSON response. Status: ${response.status}. Response: ${responseText.substring(0, 200)}...`)
+      }
 
       const data = await response.json()
       
@@ -173,22 +193,27 @@ export default function AnalyzePage() {
         format: 'a4',
       })
       
-      // Set up the PDF content
-      doc.setFillColor(17, 24, 39) // #111827 dark background
+      // Set up the PDF content - use white background for better printing
+      doc.setFillColor(255, 255, 255) // White background for better printing
       doc.rect(0, 0, 210, 297, 'F') // Fill the entire page
       
-      // Add title
-      doc.setTextColor(255, 255, 255)
+      // Add title with dark text for better visibility when printed
+      doc.setTextColor(0, 0, 0) // Black text
       doc.setFontSize(24)
       doc.text('Eye Disease Analysis Report', 105, 25, { align: 'center' })
       
+      // Add logo/header
+      doc.setDrawColor(59, 130, 246) // Blue color for header line
+      doc.setLineWidth(0.5)
+      doc.line(20, 30, 190, 30)
+      
       // Add test date
       doc.setFontSize(12)
-      doc.setTextColor(200, 200, 200)
-      doc.text(`Analysis Date: ${new Date().toLocaleDateString()}`, 105, 35, { align: 'center' })
+      doc.setTextColor(80, 80, 80) // Dark gray
+      doc.text(`Analysis Date: ${new Date().toLocaleDateString()}`, 105, 40, { align: 'center' })
       
       // Add diagnosis section
-      doc.setTextColor(255, 255, 255)
+      doc.setTextColor(0, 0, 0) // Black text
       doc.setFontSize(18)
       doc.text('Diagnosis Results', 20, 55)
       
@@ -196,20 +221,40 @@ export default function AnalyzePage() {
       doc.text('Diagnosis:', 20, 70)
       doc.setTextColor(59, 130, 246) // Blue color
       const diagnosisText = results.predicted_class ? results.predicted_class.replace('_', ' ').toUpperCase() : 'N/A'
-      doc.text(diagnosisText, 20, 85)
+      doc.text(diagnosisText, 70, 70) // Aligned to the right of the label
       
       // Add confidence
-      doc.setTextColor(255, 255, 255)
+      doc.setTextColor(0, 0, 0) // Black text
       doc.setFontSize(16)
-      doc.text('Confidence:', 20, 100)
+      doc.text('Confidence:', 20, 85)
       doc.setTextColor(59, 130, 246) // Blue color
       const confidenceText = results.confidence ? `${(results.confidence * 100).toFixed(2)}%` : 'N/A'
-      doc.text(confidenceText, 20, 115)
+      doc.text(confidenceText, 70, 85) // Aligned to the right of the label
+      
+      // Add status section
+      doc.setTextColor(0, 0, 0) // Black text
+      doc.setFontSize(16)
+      doc.text('Status:', 20, 100)
+      
+      // Set status color based on result
+      const isNormal = results.predicted_class?.toLowerCase().includes('normal')
+      if (isNormal) {
+        doc.setTextColor(0, 128, 0) // Green for normal
+        doc.text('NORMAL', 70, 100)
+      } else {
+        doc.setTextColor(220, 53, 69) // Red for abnormal
+        doc.text('REQUIRES ATTENTION', 70, 100)
+      }
+      
+      // Add a divider
+      doc.setDrawColor(200, 200, 200) // Light gray
+      doc.setLineWidth(0.2)
+      doc.line(20, 110, 190, 110)
       
       // Add detailed analysis title
-      doc.setTextColor(255, 255, 255)
+      doc.setTextColor(0, 0, 0) // Black text
       doc.setFontSize(18)
-      doc.text('Detailed Analysis', 20, 140)
+      doc.text('Detailed Analysis', 20, 125)
       
       // Add detailed analysis data
       let yPosition = 155

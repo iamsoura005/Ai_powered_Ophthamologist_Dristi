@@ -1,5 +1,25 @@
 /* Accessibility and High Contrast Mode Styles */
 
+/* Default text color overrides */
+div {
+  color: #ffffff !important;
+}
+
+/* Ensure text is visible on dark backgrounds */
+.dark div {
+  color: #ffffff !important;
+}
+
+button {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
 /* High contrast mode styles */
 .high-contrast {
   /* Override all color schemes for maximum contrast */

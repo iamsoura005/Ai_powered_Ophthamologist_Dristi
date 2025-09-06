@@ -22,6 +22,9 @@ def init_mail(app):
 def send_test_results_email(mail, user_email, user_name, test_type, results):
     """Send test results via email"""
     try:
+        if not mail or not user_email or not test_type or not results:
+            print("❌ Missing required parameters for sending email")
+            return False
         # Email template for eye disease test
         if test_type == 'eye_disease':
             subject = "Your Eye Disease Test Results - Hackloop Medical AI"
@@ -139,6 +142,7 @@ def send_test_results_email(mail, user_email, user_name, test_type, results):
                      html=html_body)
         
         mail.send(msg)
+        print(f"✅ Email sent successfully to {user_email}")
         return True
         
     except Exception as e:
@@ -211,6 +215,9 @@ def send_welcome_email(mail, user_email, user_name):
 def send_comprehensive_report(mail, user, test_results):
     """Send comprehensive report with all test results"""
     try:
+        if not mail or not user or not test_results or not user.email:
+            print("❌ Missing required parameters for sending comprehensive report")
+            return False
         subject = "Your Complete Medical Test History - Hackloop Medical AI"
         
         # Separate results by type

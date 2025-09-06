@@ -8,7 +8,7 @@ import Link from "next/link"
 
 const timelineEvents = [
   {
-    year: "2019",
+    year: "2025 June",
     title: "Foundation",
     description:
       "RetinalAI was founded by a team of ophthalmologists and AI researchers with a vision to revolutionize retinal disease detection.",
@@ -16,14 +16,14 @@ const timelineEvents = [
     gradient: "from-blue-500 to-cyan-500",
   },
   {
-    year: "2020",
+    year: "2025 July",
     title: "First AI Model",
     description: "Developed our first deep learning model trained on over 100,000 retinal images with 95% accuracy.",
     icon: Brain,
     gradient: "from-purple-500 to-pink-500",
   },
   {
-    year: "2021",
+    year: "2025 August",
     title: "Clinical Trials",
     description:
       "Conducted extensive clinical trials across 15 hospitals, achieving 99.2% accuracy in diabetic retinopathy detection.",
@@ -31,20 +31,14 @@ const timelineEvents = [
     gradient: "from-green-500 to-emerald-500",
   },
   {
-    year: "2022",
-    title: "FDA Approval",
+    year: "2025 September",
+    title: "Presenting in Hackloop",
     description:
-      "Received FDA approval for our AI-powered retinal analysis platform, marking a milestone in medical AI.",
+      "Presenting AI-powered retinal analysis platform, marking a milestone in Hackloop.",
     icon: CheckCircle,
     gradient: "from-yellow-500 to-orange-500",
   },
-  {
-    year: "2023",
-    title: "Global Expansion",
-    description: "Expanded to serve over 1,000 healthcare facilities worldwide, analyzing millions of retinal images.",
-    icon: Users,
-    gradient: "from-teal-500 to-blue-500",
-  },
+  
   {
     year: "2024",
     title: "Next Generation",
@@ -119,7 +113,7 @@ export default function AboutPage() {
             </h1>
 
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              At RetinalAI, we're on a mission to democratize access to world-class retinal disease detection through
+              At Dristi AI, we're on a mission to democratize access to world-class retinal disease detection through
               the power of artificial intelligence and machine learning.
             </p>
           </motion.div>
